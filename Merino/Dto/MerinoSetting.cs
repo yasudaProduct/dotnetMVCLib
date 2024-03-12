@@ -39,13 +39,19 @@ namespace Merino.Settings
     public class InjectionAssembly
     {
         public string AssemblyName { get; set; }
-        public List<EndMatchNames> EndMatchNames { get; set; }
+        public List<string> EndMatchNames { get; set; }
+        public List<string> ExactMatchNames { get; set; }
     }
 
-    public class EndMatchNames
-    {
-        public string EndMatchName { get; set; }
-    }
+    //public class EndMatchNames
+    //{
+    //    public string EndMatchName { get; set; }
+    //}
+
+    //public class ExactMatchNames
+    //{
+    //    public string ExactMatchName { get; set; }
+    //}
 
     public class EnvSetting
     {

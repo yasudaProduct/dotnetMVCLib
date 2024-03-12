@@ -332,22 +332,41 @@ namespace Merino
             // ⇒指定したアセンブリ内の依存関係全て検索していたので、どこかのクラス名にRepositoryが含むのがヒットし
             // 　AsMatchingInterfaceとしているので、マッチするinterfaceが見つからず。生成出来なかった
 
+            //　命名規則を設けてEndsWithでDIしようとすると、
+            //　IUserRepositoryの実装でPostgresUserRepositoryとInMemoryRepositoryを作成している場合、
+            //　両方DIされているか、デフォルトで後勝ち。 実装の切り替えが出来ない。
+            //　実装するクラスをフルで設定ファイルに記載するようにしたほうがよさそう。
+
+            //①アセンブリ指定スキャン
+            //②EndWithNameで検索 (Repository) ⇒ PostgresSqlUserRepositoryとInMemoryUserRepositoryが登録される
+            //③exact matchで検索 (実装にしたいInMemoryUserRepository) ⇒ InMemoryUserRepositoryが登録される
+            //④Replace(Scrutor.ReplacementBehavior.ServiceType)でサービスタイプを置き換える ⇒ PostgresSqlUserRepositoryが置換される
+
             //依存注入 https://github.com/khellang/Scrutor/tree/master
+            //https://andrewlock.net/using-scrutor-to-automatically-register-your-services-with-the-asp-net-core-di-container/#registering-services-which-match-a-standard-naming-convention
 
             foreach (InjectionAssembly injectionSetting in settingList)
             {
-                string[] conditions = injectionSetting.EndMatchNames.Select(assembly => assembly.EndMatchName).ToArray();
-                //string[] conditions = injectionSetting.EndMatchNames;
+
+                List<string> conditions = new List<string>();
+                if (injectionSetting.EndMatchNames != null) conditions = injectionSetting.EndMatchNames.ToList<string>();
+                if(injectionSetting.ExactMatchNames != null) conditions.AddRange(injectionSetting.ExactMatchNames.ToList<string>());
+
+                if (conditions.Count == 0) return;
 
                 Assembly assembly = Assembly.Load(injectionSetting.AssemblyName);
 
-                builder.Services.Scan(scan =>
-                scan.FromAssemblyDependencies(assembly)
-                .AddClasses(classes => classes.Where(type =>
-                type.Assembly == assembly && CheckTypeCondition(type, conditions)))
-                .AsImplementedInterfaces()
-                .WithScopedLifetime());
-            }
+                foreach (string cond in conditions)
+                {
+                    builder.Services.Scan(scan =>
+                    scan.FromAssemblyDependencies(assembly)
+                    .AddClasses(classes => classes.Where(type =>
+                    type.Assembly == assembly && type.Name.EndsWith(cond)))
+                    .UsingRegistrationStrategy(Scrutor.RegistrationStrategy.Replace(Scrutor.ReplacementBehavior.ServiceType))
+                    .AsImplementedInterfaces()
+                    .WithScopedLifetime());
+                }
+            }           
 
             _logger.Info("△MerinoWebApplication InjectionClass△");
         }
