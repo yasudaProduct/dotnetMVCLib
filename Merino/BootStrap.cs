@@ -244,6 +244,11 @@ namespace Merino
             const string NPGSQL_CLASS_NAME = "Npgsql.EntityFrameworkCore.PostgreSQL";
             const string NPGSQL_EXTENSIONS_CLASS_NAME = "NpgsqlDbContextOptionsBuilderExtensions";
             const string NPGSQL_USE_METHOD_NAME = "UseNpgsql";
+
+            //PostgreSQL
+            const string INMEMORY_CLASS_NAME = "Microsoft.EntityFrameworkCore.InMemory";
+            const string INMEMORY_EXTENSIONS_CLASS_NAME = "InMemoryDbContextOptionsExtensions";
+            const string INMEMORY_USE_METHOD_NAME = "UseInMemoryDatabase";
             #endregion
 
 
@@ -265,8 +270,6 @@ namespace Merino
                 var optionsBuilder = Activator.CreateInstance(optionsBuilderType);
 
                 //DBプロパイダに合わせてアクションを作成
-                //TODO FW側でやろうとすると使用していないdllをbinに含むことになるので、
-                //     ライブラリを分けるか、Useメソッドもデリケートから取得できる？
                 Action<DbContextOptionsBuilder>? action = null;
                 switch (setting.EntityFramework.UseDbProvider)
                 {
@@ -278,8 +281,8 @@ namespace Merino
 
                     case DbProvider.PostgreSQL:
                         //Assemblyから拡張メソッドを取得
-                        Assembly asmby = Assembly.Load(NPGSQL_CLASS_NAME);
-                        var useNpgsqlMethod = asmby.GetTypes().FirstOrDefault(t => t.Name == NPGSQL_EXTENSIONS_CLASS_NAME)
+                        Assembly NqgSqlAsmby = Assembly.Load(NPGSQL_CLASS_NAME);
+                        var useNpgsqlMethod = NqgSqlAsmby.GetTypes().FirstOrDefault(t => t.Name == NPGSQL_EXTENSIONS_CLASS_NAME)
                             .GetMethods().FirstOrDefault(m =>
                             m.Name == NPGSQL_USE_METHOD_NAME
                             && m.GetParameters().Length == 3
@@ -293,8 +296,17 @@ namespace Merino
 
                         break;
                     case DbProvider.UseInMemoryDatabase:
-                        //PostgreSQL実行Action作成 AddDbContextの引数用
+                        Assembly InMemoryasmby = Assembly.Load(INMEMORY_CLASS_NAME);
+                        var useInMemoryMethod = InMemoryasmby.GetTypes().FirstOrDefault(t => t.Name == INMEMORY_EXTENSIONS_CLASS_NAME)
+                            .GetMethods().FirstOrDefault(m =>
+                            m.Name == INMEMORY_USE_METHOD_NAME
+                            && m.GetParameters().Length == 3
+                            && m.GetParameters()[1].ParameterType == typeof(string));
+
                         action = delegate (DbContextOptionsBuilder op) { op.UseInMemoryDatabase("InMemory"); };
+                        //action = delegate (DbContextOptionsBuilder op) {
+                        //    useInMemoryMethod.Invoke(op, new object[] { op, "InMemory", null });
+                        //};
                         break;
                     default: throw new InvalidOperationException();
                 }
@@ -366,7 +378,7 @@ namespace Merino
                     .AsImplementedInterfaces()
                     .WithScopedLifetime());
                 }
-            }           
+            }
 
             _logger.Info("△MerinoWebApplication InjectionClass△");
         }
