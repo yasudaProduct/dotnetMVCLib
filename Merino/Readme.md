@@ -41,12 +41,30 @@ BootStrap.RunWebApplication(app);
 ```
 
 ## 依存注入
-インジェクション拡張暮らすライブラリのScrutorを使する。 </br>
-(Scrutor https://github.com/khellang/Scrutor/tree/master)
+インジェクション拡張ライブラリのScrutorを使する。</br>
+[Scrutor github](https://github.com/khellang/Scrutor/tree/master)</br>
+[解説](https://andrewlock.net/using-scrutor-to-automatically-register-your-services-with-the-asp-net-core-di-container/#registering-services-which-match-a-standard-naming-convention)
 
-</br>
 設定ファイルに記載されたアセンブリ内のクラス名から自動的に判断し、</br>
 ScopedでInjectionを行う。</br>
+文字列に一致するクラスを検索し、そのクラスとインターフェースを登録する。</br>
+すでに登録済みのインターフェースがヒットした場合、実装クラスを置き換える。
+実装が2種類存在する場合は、[設定ファイル](/Document/Setting.md)の</br>
+ExactMatchNamesに記載された実装クラスで登録される。
+
+```C#:Program.cs
+foreach (string cond in conditions)　//検索文字列でループ
+{
+    builder.Services.Scan(scan =>
+    scan.FromAssemblyDependencies(assembly) //対象アセンブリ
+    .AddClasses(classes => classes.Where(type =>
+    type.Assembly == assembly && type.Name.EndsWith(cond))) //アセンブリ内のクラスを検索
+    .UsingRegistrationStrategy(Scrutor.RegistrationStrategy.Replace(Scrutor.ReplacementBehavior.ServiceType)) //登録済みの場合の仕様
+    .AsImplementedInterfaces() //インターフェースと一緒に登録
+    .WithScopedLifetime()); //ライフサイクル
+}
+
+```
 
 
 ## ログ

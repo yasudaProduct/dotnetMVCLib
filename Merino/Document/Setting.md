@@ -16,6 +16,23 @@ resource/templateフォルダにある設定ファイルをWebプロジェクト
     "SettingFile": {
       "Database": "database.json"
     },
+    "InjectionAssembly": [
+      {
+        "AssemblyName": "SampleApp.Application",
+        "EndMatchNames": [
+          "Service"
+        ]
+      },
+      {
+        "AssemblyName": "SampleApp.Infrastructure",
+        "EndMatchNames": [
+          "Repository"
+        ],
+        "ExactMatchNames": [
+          "InMemoryUserRepository"
+        ]
+      },
+    ],
     "CustomSettingFile": [
       {
         "AssemblyName": "WebMvcSampleLibrary",
@@ -53,6 +70,14 @@ resource/templateフォルダにある設定ファイルをWebプロジェクト
 |SettingFile.CustomSettingFile |独自設定ファイル|×|
 |Env |環境|×|
 |EnvSetting |環境設定|×|
+
+InjectionAssembly
+
+|項目|内容|必須|
+| ---- | ---- | ---- |
+|AssemblyName |アセンブリ名|○|
+|EndMatchNames|検索文字列(部分一致)||
+|ExactMatchNames|検索文字列(完全一致)||
 
 
 CustomSettingFile
