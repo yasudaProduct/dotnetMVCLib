@@ -16,6 +16,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Resources\SharedResource.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="config\appsettings.json" />
   </ItemGroup>
 

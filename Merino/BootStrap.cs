@@ -1,11 +1,20 @@
-﻿using Merino.Settings;
+﻿using Merino.Adapter;
+using Merino.Resources;
+using Merino.Settings;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Mvc.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
+using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NLog.Web;
+using System.Globalization;
 using System.Reflection;
 using static Merino.Const.FWConst;
 
@@ -41,6 +50,13 @@ namespace Merino
         private static NLog.Logger _logger;
 
         private static MerinoSettings _setting;
+
+        private static IServiceProvider ServiceProvider { get; set; }
+
+        private static IStringLocalizer _localizer = null;
+
+        private static IStringLocalizer Localizer => _localizer ?? (_localizer = ServiceProvider.GetService<IStringLocalizerFactory>()
+           .Create(nameof(SharedResource), new AssemblyName(typeof(SharedResource).Assembly.FullName).Name));
 
         /// <summary>
         /// BuildWebApplication
@@ -80,7 +96,8 @@ namespace Merino
             //Database設定
             DatabaseSetting dbSetting = builder.Configuration.GetSection(nameof(DatabaseSetting)).Get<DatabaseSetting>();
 
-            if(dbSetting != null ){
+            if (dbSetting != null)
+            {
 
                 //EntityFrameworkが有効なDataSource設定を取得
                 var dataSourceList = dbSetting.DataSources.DataSource.Where(m => m.EntityFramework != null).ToList();
@@ -92,7 +109,8 @@ namespace Merino
             }
 
             //依存注入
-            if(setting.InjectionAssembly != null){
+            if (setting.InjectionAssembly != null)
+            {
                 InjectionClass(setting.InjectionAssembly, ref builder);
             }
 
@@ -102,7 +120,35 @@ namespace Merino
                 options.Cookie.Name = "MerinoSession";
             });
 
-            builder.Services.AddControllersWithViews();
+            builder.Services.AddControllersWithViews(op =>
+            {
+
+                //検証メッセージの日本語化
+                static string f1(string f, string a1) => string.Format(f, a1);
+                static string f2(string f, string a1, string a2) => string.Format(f, a1, a2);
+
+                DefaultModelBindingMessageProvider provider = op.ModelBindingMessageProvider;
+                provider.SetAttemptedValueIsInvalidAccessor((x, y) => f2(Localizer["ModelBinding_AttemptedValueIsInvalid"], x, y));
+                provider.SetMissingBindRequiredValueAccessor((x) => f1(Localizer["ModelBinding_MissingBindRequiredValue"], x));
+                provider.SetMissingKeyOrValueAccessor(() => Localizer["ModelBinding_MissingKeyOrValue"]);
+                provider.SetMissingRequestBodyRequiredValueAccessor(() => Localizer["ModelBinding_MissingRequestBodyRequiredValue"]);
+                provider.SetNonPropertyAttemptedValueIsInvalidAccessor((x) => f1(Localizer["ModelBinding_NonPropertyAttemptedValueIsInvalid"], x));
+                provider.SetNonPropertyUnknownValueIsInvalidAccessor(() => Localizer["ModelBinding_NonPropertyUnknownValueIsInvalid"]);
+                provider.SetNonPropertyValueMustBeANumberAccessor(() => Localizer["ModelBinding_NonPropertyValueMustBeANumber"]);
+                provider.SetUnknownValueIsInvalidAccessor((x) => f1(Localizer["ModelBinding_UnknownValueIsInvalid"], x));
+                provider.SetValueIsInvalidAccessor((x) => f1(Localizer["ModelBinding_ValueIsInvalid"], x));
+                provider.SetValueMustBeANumberAccessor((x) => f1(Localizer["ModelBinding_ValueMustBeANumber"], x));
+                provider.SetValueMustNotBeNullAccessor((x) => f1(Localizer["ModelBinding_ValueMustNotBeNull"], x));
+            });
+
+            builder.Services.AddMvc()
+                .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix, opts => { opts.ResourcesPath = "Resources"; })
+                .AddDataAnnotationsLocalization(options =>
+                {
+                    options.DataAnnotationLocalizerProvider = (type, factory) => factory.Create(typeof(SharedResource));
+                });
+
+            builder.Services.AddSingleton<IValidationAttributeAdapterProvider, CustomValidationAttributeAdapterProvider>();
 
             return builder;
         }
@@ -122,6 +168,21 @@ namespace Merino
             {
                 app.UseExceptionHandler(_setting.Web.CustomErrorPage);
             }
+
+            // 標準の機能で切り替えたい言語を定義
+            //var supportedCultures = new[]
+            //{
+            //    new CultureInfo("ja"),
+            //    new CultureInfo("en"),
+            //    new CultureInfo("es"),
+            //};
+
+            //app.UseRequestLocalization(new RequestLocalizationOptions
+            //{
+            //    DefaultRequestCulture = new RequestCulture("ja"),
+            //    SupportedCultures = supportedCultures,
+            //    SupportedUICultures = supportedCultures
+            //});
 
             var test = app.Environment.EnvironmentName;
             //var environment = System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
@@ -170,7 +231,7 @@ namespace Merino
             _logger.Trace("▽MerinoWebApplication InitAppSettings▽");
 
             //merino.json
-            if(!File.Exists(Path.Combine(CONF_FOLDER_NAME, CONF_FILE_NAME))) throw new DirectoryNotFoundException("設定ファイルが見つかりません。:" + Path.Combine(CONF_FOLDER_NAME, CONF_FILE_NAME));
+            if (!File.Exists(Path.Combine(CONF_FOLDER_NAME, CONF_FILE_NAME))) throw new DirectoryNotFoundException("設定ファイルが見つかりません。:" + Path.Combine(CONF_FOLDER_NAME, CONF_FILE_NAME));
             builder.Configuration.AddJsonFile(Path.Combine(CONF_FOLDER_NAME, CONF_FILE_NAME), optional: false, reloadOnChange: true);
             builder.Services.Configure<MerinoSettings>(builder.Configuration.GetSection(nameof(MerinoSettings)));
             _setting = builder.Configuration.GetSection(nameof(MerinoSettings)).Get<MerinoSettings>() ?? throw new ArgumentNullException(nameof(MerinoSettings));
@@ -290,7 +351,8 @@ namespace Merino
 
                         //PostgreSQL実行Action作成 AddDbContextの引数用
                         //action = delegate (DbContextOptionsBuilder op) { op.UseNpgsql(setting.ConnectionString); };
-                        action = delegate (DbContextOptionsBuilder op) {
+                        action = delegate (DbContextOptionsBuilder op)
+                        {
                             useNpgsqlMethod.Invoke(op, new object[] { op, setting.ConnectionString, null });
                         };
 
@@ -362,7 +424,7 @@ namespace Merino
 
                 List<string> conditions = new List<string>();
                 if (injectionSetting.EndMatchNames != null) conditions = injectionSetting.EndMatchNames.ToList<string>();
-                if(injectionSetting.ExactMatchNames != null) conditions.AddRange(injectionSetting.ExactMatchNames.ToList<string>());
+                if (injectionSetting.ExactMatchNames != null) conditions.AddRange(injectionSetting.ExactMatchNames.ToList<string>());
 
                 if (conditions.Count == 0) return;
 
@@ -394,7 +456,7 @@ namespace Merino
         /// <param name="envName">環境名</param>
         /// <param name="baseFileName">設定ファイル名</param>
         /// <returns>設定ファイル名</returns>
-        private static string EnvSettingFileName(string? envName,string baseFileName )
+        private static string EnvSettingFileName(string? envName, string baseFileName)
         {
             return string.IsNullOrEmpty(envName)
                 ? baseFileName
@@ -421,6 +483,7 @@ namespace Merino
             }
             return result;
         }
+
         #endregion
     }
 }
