@@ -1,17 +1,10 @@
-﻿using Merino.config;
-using Merino.Filters;
-using Microsoft.AspNetCore.Authentication.Cookies;
+﻿using Merino.Filters;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using System.Data;
 using System.Security.Claims;
-using System.Security.Cryptography.X509Certificates;
-using Merino.Dto;
-using System;
 
 namespace Merino.Controller
 {
