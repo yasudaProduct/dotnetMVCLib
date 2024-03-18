@@ -1,20 +1,13 @@
-﻿using Merino.Adapter;
-using Merino.Resources;
+﻿using Merino.Resources;
 using Merino.Settings;
+using Merino.Validators;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Localization;
-using Microsoft.AspNetCore.Mvc.DataAnnotations;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
-using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using NLog.Web;
-using System.Globalization;
 using System.Reflection;
 using static Merino.Const.FWConst;
 
@@ -50,13 +43,6 @@ namespace Merino
         private static NLog.Logger _logger;
 
         private static MerinoSettings _setting;
-
-        //private static IServiceProvider ServiceProvider { get; set; }
-
-        //private static IStringLocalizer _localizer = null;
-
-        //private static IStringLocalizer Localizer => _localizer ?? (_localizer = ServiceProvider.GetService<IStringLocalizerFactory>()
-        //   .Create(nameof(SharedResource), new AssemblyName(typeof(SharedResource).Assembly.FullName).Name));
 
         /// <summary>
         /// BuildWebApplication
@@ -123,32 +109,36 @@ namespace Merino
             builder.Services.AddControllersWithViews(op =>
             {
 
-                //検証メッセージの日本語化
-                //static string f1(string f, string a1) => string.Format(f, a1);
-                //static string f2(string f, string a1, string a2) => string.Format(f, a1, a2);
+                op.ModelMetadataDetailsProviders.Add(new CustomValidationMetadataProvider());
 
-                //DefaultModelBindingMessageProvider provider = op.ModelBindingMessageProvider;
-                //provider.SetAttemptedValueIsInvalidAccessor((x, y) => f2(Localizer["ModelBinding_AttemptedValueIsInvalid"], x, y));
-                //provider.SetMissingBindRequiredValueAccessor((x) => f1(Localizer["ModelBinding_MissingBindRequiredValue"], x));
-                //provider.SetMissingKeyOrValueAccessor(() => Localizer["ModelBinding_MissingKeyOrValue"]);
-                //provider.SetMissingRequestBodyRequiredValueAccessor(() => Localizer["ModelBinding_MissingRequestBodyRequiredValue"]);
-                //provider.SetNonPropertyAttemptedValueIsInvalidAccessor((x) => f1(Localizer["ModelBinding_NonPropertyAttemptedValueIsInvalid"], x));
-                //provider.SetNonPropertyUnknownValueIsInvalidAccessor(() => Localizer["ModelBinding_NonPropertyUnknownValueIsInvalid"]);
-                //provider.SetNonPropertyValueMustBeANumberAccessor(() => Localizer["ModelBinding_NonPropertyValueMustBeANumber"]);
-                //provider.SetUnknownValueIsInvalidAccessor((x) => f1(Localizer["ModelBinding_UnknownValueIsInvalid"], x));
-                //provider.SetValueIsInvalidAccessor((x) => f1(Localizer["ModelBinding_ValueIsInvalid"], x));
-                //provider.SetValueMustBeANumberAccessor((x) => f1(Localizer["ModelBinding_ValueMustBeANumber"], x));
-                //provider.SetValueMustNotBeNullAccessor((x) => f1(Localizer["ModelBinding_ValueMustNotBeNull"], x));
+                //モデルバインディングメッセージの日本語化
+                Func<string, string, string> f1 = (f, a1) => string.Format(f, a1);
+                Func<string, string, string, string> f2 = (f, a1, a2) => string.Format(f, a1, a2);
+
+                var mp = op.ModelBindingMessageProvider;
+                mp.SetAttemptedValueIsInvalidAccessor((x, y) =>
+                    f2(Resource.ModelBinding_AttemptedValueIsInvalid, x, y));
+                mp.SetMissingBindRequiredValueAccessor((x) =>
+                    f1(Resource.ModelBinding_MissingBindRequiredValue, x));
+                mp.SetMissingKeyOrValueAccessor(() =>
+                    Resource.ModelBinding_MissingKeyOrValue);
+                mp.SetMissingRequestBodyRequiredValueAccessor(() =>
+                    Resource.ModelBinding_MissingRequestBodyRequiredValue);
+                mp.SetNonPropertyAttemptedValueIsInvalidAccessor((x) =>
+                    f1(Resource.ModelBinding_NonPropertyAttemptedValueIsInvalid, x));
+                mp.SetNonPropertyUnknownValueIsInvalidAccessor(() =>
+                    Resource.ModelBinding_NonPropertyUnknownValueIsInvalid);
+                mp.SetNonPropertyValueMustBeANumberAccessor(() =>
+                    Resource.ModelBinding_NonPropertyValueMustBeANumber);
+                mp.SetUnknownValueIsInvalidAccessor((x) =>
+                    f1(Resource.ModelBinding_UnknownValueIsInvalid, x));
+                mp.SetValueIsInvalidAccessor((x) =>
+                    f1(Resource.ModelBinding_ValueIsInvalid, x));
+                mp.SetValueMustBeANumberAccessor((x) =>
+                    f1(Resource.ModelBinding_ValueMustBeANumber, x));
+                mp.SetValueMustNotBeNullAccessor((x) =>
+                    f1(Resource.ModelBinding_ValueMustNotBeNull, x));
             });
-
-            //builder.Services.AddMvc()
-            //    .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix, opts => { opts.ResourcesPath = "Resources"; })
-            //    .AddDataAnnotationsLocalization(options =>
-            //    {
-            //        options.DataAnnotationLocalizerProvider = (type, factory) => factory.Create(typeof(SharedResource));
-            //    });
-
-            //builder.Services.AddSingleton<IValidationAttributeAdapterProvider, CustomValidationAttributeAdapterProvider>();
 
             return builder;
         }
@@ -168,21 +158,6 @@ namespace Merino
             {
                 app.UseExceptionHandler(_setting.Web.CustomErrorPage);
             }
-
-            // 標準の機能で切り替えたい言語を定義
-            //var supportedCultures = new[]
-            //{
-            //    new CultureInfo("ja"),
-            //    new CultureInfo("en"),
-            //    new CultureInfo("es"),
-            //};
-
-            //app.UseRequestLocalization(new RequestLocalizationOptions
-            //{
-            //    DefaultRequestCulture = new RequestCulture("ja"),
-            //    SupportedCultures = supportedCultures,
-            //    SupportedUICultures = supportedCultures
-            //});
 
             var test = app.Environment.EnvironmentName;
             //var environment = System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
