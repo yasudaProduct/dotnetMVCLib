@@ -8,6 +8,9 @@ using System.Reflection;
 namespace Merino.Validators
 {
 
+    /// <summary>
+    /// カスタムのバリデーションメタデータプロバイダークラスです。
+    /// </summary>
     public class CustomValidationMetadataProvider : IValidationMetadataProvider
     {
         private const string RESOURCE_KEY_PREFIX = "Validator_";
@@ -18,6 +21,9 @@ namespace Merino.Validators
 
         private Dictionary<Type, string> defaultMessageDic;
 
+        /// <summary>
+        /// CustomValidationMetadataProvider クラスの新しいインスタンスを初期化します。
+        /// </summary>
         public CustomValidationMetadataProvider()
         {
 
@@ -34,8 +40,11 @@ namespace Merino.Validators
             this.defaultMessageDic = dic;
         }
 
-        public void CreateValidationMetadata(
-        ValidationMetadataProviderContext context)
+        /// <summary>
+        /// バリデーションメタデータを作成します。
+        /// </summary>
+        /// <param name="context">バリデーションメタデータプロバイダーコンテキスト</param>
+        public void CreateValidationMetadata(ValidationMetadataProviderContext context)
         {
             var metaData = context.ValidationMetadata.ValidatorMetadata;
 

@@ -1,25 +1,24 @@
-﻿using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace Merino.Filters
 {
-    public class CustomExceptionFilterAttribute: ExceptionFilterAttribute
+    /// <summary>
+    /// カスタム例外フィルター属性クラスです。
+    /// </summary>
+    public class CustomExceptionFilterAttribute : ExceptionFilterAttribute
     {
-
+        /// <summary>
+        /// <see cref="CustomExceptionFilterAttribute"/> クラスの新しいインスタンスを初期化します。
+        /// </summary>
         public CustomExceptionFilterAttribute()
         {
 
         }
 
+        /// <summary>
+        /// 例外が発生したときに実行されるメソッドです。
+        /// </summary>
+        /// <param name="context">例外コンテキスト</param>
         public override void OnException(ExceptionContext context)
         {
             //_logger.LogError("例外発生：" + context.Exception.Message.ToString() + "\r\n");

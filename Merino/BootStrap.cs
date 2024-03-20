@@ -17,11 +17,15 @@ using static Merino.Const.FWConst;
 //FW側でDBプロパイダに対応しようとすると不要なdllが配置される
 // ⇒Useメソッドもリファレンス呼び出しにすることで、ContextがあるプロジェクトにプロパイダごとのEntityFrameworkを追加する
 
-
 namespace Merino
 {
+    /// <summary>
+    /// BootStrapクラスは、Webアプリケーションの起動と設定を管理します。
+    /// </summary>
     public class BootStrap
     {
+        #region property
+
         #region 定数
         /// <summary>
         /// 設定ファイル配置フォルダ名
@@ -44,11 +48,15 @@ namespace Merino
 
         private static MerinoSettings _setting;
 
+        #endregion
+
         /// <summary>
-        /// BuildWebApplication
+        /// WEBアプリケーションを構築
         /// </summary>
         /// <param name="args"></param>
-        /// <returns>WebApplicationBuilder</returns>
+        /// <returns　cref="WebApplicationBuilder"></returns>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="ArgumentNullException"></exception>
         public static WebApplicationBuilder BuildWebApplication(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
@@ -144,10 +152,10 @@ namespace Merino
         }
 
         /// <summary>
-        /// CreateWebApplication
+        /// WebApplicationを作成します。
         /// </summary>
         /// <param name="builder"></param>
-        /// <returns>WebApplication</returns>
+        /// <returns cref="WebApplication"></returns>
         public static WebApplication CreateWebApplication(WebApplicationBuilder builder)
         {
             _logger.Trace("▽MerinoWebApplication CreateWebApplication▽");
@@ -180,7 +188,7 @@ namespace Merino
         }
 
         /// <summary>
-        /// RunWebApplication
+        /// WebApplicationを実行します。
         /// </summary>
         /// <param name="app"></param>
         public static void RunWebApplication(WebApplication app)
@@ -197,10 +205,14 @@ namespace Merino
 
         #region private methods
 
-        #region 設定ファイル初期化
+        #region InitAppSettings 設定ファイル初期化
         /// <summary>
-        /// 設定ファイル初期化
+        /// 設定ファイルを初期化します。
         /// </summary>
+        /// <param name="builder">WebApplicationBuilderのインスタンス</param>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="InvalidOperationException"></exception>
         private static void InitAppSettings(ref WebApplicationBuilder builder)
         {
             _logger.Trace("▽MerinoWebApplication InitAppSettings▽");
@@ -259,10 +271,14 @@ namespace Merino
         }
         #endregion
 
-        #region EntityFrameWork設定
+        #region InitDbContext EntityFrameWork設定
         /// <summary>
-        /// EntityFrameWork設定
+        ///  EntityFrameWork設定
         /// </summary>
+        /// <param name="settingList"></param>
+        /// <param name="builder"></param>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="InvalidOperationException"></exception>
         private static void InitDbContext(List<DataSource> settingList, ref WebApplicationBuilder builder)
         {
             _logger.Info("▽MerinoWebApplication InitDbContext▽");
@@ -360,7 +376,7 @@ namespace Merino
         }
         #endregion
 
-        #region Injection処理
+        #region InjectionClass DirectInjection処理
         /// <summary>
         /// Injection処理
         /// </summary>
@@ -421,7 +437,7 @@ namespace Merino
         }
         #endregion
 
-        #region 設定ファイル名の組み立て
+        #region EnvSettingFileName 設定ファイル名の組み立て
         /// <summary>
         /// 設定ファイル名の組み立て
         /// </summary>
@@ -439,6 +455,7 @@ namespace Merino
         }
         #endregion
 
+        #region CheckTypeCondition クラス名一致チェック
         /// <summary>
         /// クラス名一致チェック
         /// </summary>
@@ -458,6 +475,7 @@ namespace Merino
             }
             return result;
         }
+        #endregion
 
         #endregion
     }
