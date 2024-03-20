@@ -18,6 +18,14 @@ namespace Merino.Controller
         {
         }
 
+        protected string UserId
+        {
+            get
+            {
+                return User.Claims.Where(x => x.Type == "UserId").FirstOrDefault().Value;
+            }
+        }
+
         /// <summary>
         /// 認証cookieをレスポンスに追加
         /// </summary>
