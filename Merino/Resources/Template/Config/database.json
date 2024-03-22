@@ -1,0 +1,16 @@
+{
+  "DatabaseSetting": {
+    "DataSources": {
+      "DataSource": [
+        {
+          "EntityFramework": {
+            "Valid": true,
+            "UseDbProvider": 3,
+            "ContextAssemblyName": "SampleApp.Infrastructure",
+            "ContextClassName": "SampleApp.Infrastructure.Data.PostgresDbContext"
+          }
+        }
+      ]
+    }
+  }
+}

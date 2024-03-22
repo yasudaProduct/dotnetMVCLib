@@ -1,0 +1,56 @@
+{
+  "MerinoSettings": {
+    "SettingFile": {
+      "Database": "database.json"
+    },
+    "InjectionAssembly": [
+      {
+        "AssemblyName": "SampleApp.Application",
+        "EndMatchNames": [
+          "Service"
+        ]
+      },
+      {
+        "AssemblyName": "SampleApp.Infrastructure",
+        "EndMatchNames": [
+          "Repository",
+          "QueryService",
+          "Client"
+        ],
+        "ExactMatchNames": [
+          "InMemoryUserRepository"
+        ]
+      }
+    ],
+    // "CustomSettingFile": [
+    //   {
+    //     "AssemblyName": "SampleApp",
+    //     "ClassName": "SampleApp.Util.WebMvcSampleSetting",
+    //     "FileName": "MerinoWebAppSettings.json"
+    //   }
+    // ],
+    "Env": 1,
+    "EnvSetting": [
+      {
+        "EnvCls": 1,
+        "EnvName": ""
+      },
+      {
+        "EnvCls": 2,
+        "EnvName": "develop"
+      },
+      {
+        "EnvCls": 3,
+        "EnvName": "st"
+      },
+      {
+        "EnvCls": 4,
+        "EnvName": "prod"
+      }
+    ],
+    "Web": {
+      "CustomErrorPage": "/Home/Error",
+      "RootUrlPattern": "{controller=Home}/{action=Index}/{id?}"
+    }
+  }
+}
