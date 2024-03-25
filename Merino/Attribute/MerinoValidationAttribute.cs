@@ -5,13 +5,24 @@ using System.Reflection;
 
 namespace Merino.Attribute
 {
+    /// <summary>
+    /// バリデーション属性を表すクラスです。
+    /// </summary>
     public class MerinoValidationAttribute : ValidationAttribute
     {
 
+        /// <summary>
+        /// MerinoValidationAttribute クラスの新しいインスタンスを初期化します。
+        /// </summary>
         public MerinoValidationAttribute()
         : base()
         { }
 
+        /// <summary>
+        /// リソース名に基づいてメッセージを取得します。
+        /// </summary>
+        /// <param name="resouceName">リソース名</param>
+        /// <returns>メッセージ</returns>
         protected string GetResouceMesseage(string resouceName)
         {
             if (resouceName == null)
@@ -40,6 +51,12 @@ namespace Merino.Attribute
             return null;
         }
 
+        /// <summary>
+        /// メッセージとバリデーションコンテキストに基づいてメッセージを取得します。
+        /// </summary>
+        /// <param name="messeage">メッセージ</param>
+        /// <param name="validationContext">バリデーションコンテキスト</param>
+        /// <returns>メッセージ</returns>
         protected string GetMesseage(string messeage, ValidationContext validationContext)
         {
             if (messeage.IsFormatString() && validationContext.DisplayName != null)

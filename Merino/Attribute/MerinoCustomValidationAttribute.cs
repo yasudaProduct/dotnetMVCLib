@@ -5,18 +5,31 @@ using System.Text.RegularExpressions;
 namespace Merino.Attribute
 {
 
+    /// <summary>
+    /// メールアドレス属性を表すカスタムバリデーション属性です。
+    /// </summary>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = true)]
     public sealed class MerinoEmailAddressAttribute : MerinoDataTypeAttribute
     {
 
         static string ErrorMageage;
 
+        /// <summary>
+        /// MerinoEmailAddressAttribute クラスの新しいインスタンスを初期化します。
+        /// </summary>
+        /// <param name="resouceName">リソース名。</param>
         public MerinoEmailAddressAttribute(string resouceName = null)
             : base(DataType.EmailAddress)
         {
             ErrorMageage = GetResouceMesseage(resouceName);
         }
 
+        /// <summary>
+        /// 指定された値が有効かどうかを検証します。
+        /// </summary>
+        /// <param name="value">検証する値。</param>
+        /// <param name="validationContext">検証コンテキスト。</param>
+        /// <returns>検証結果。</returns>
         protected override ValidationResult? IsValid(object value, ValidationContext validationContext)
         {
             var email = "";
@@ -70,16 +83,30 @@ namespace Merino.Attribute
         }
     }
 
+    /// <summary>
+    /// 必須属性を表すカスタムバリデーション属性です。
+    /// </summary>
     public sealed class MerinoRequiredAttribute : MerinoValidationAttribute
     {
 
         static string ErrorMageage = null;
 
+        /// <summary>
+        /// MerinoRequiredAttribute クラスの新しいインスタンスを初期化します。
+        /// </summary>
+        /// <param name="resouceName">リソース名。</param>
         public MerinoRequiredAttribute(string resouceName = null)
             : base()
         {
             ErrorMageage = GetResouceMesseage(resouceName);
         }
+
+        /// <summary>
+        /// 指定された値が有効かどうかを検証します。
+        /// </summary>
+        /// <param name="value">検証する値。</param>
+        /// <param name="validationContext">検証コンテキスト。</param>
+        /// <returns>検証結果。</returns>
         protected override ValidationResult? IsValid(object value, ValidationContext validationContext)
         {
             if (value == null)

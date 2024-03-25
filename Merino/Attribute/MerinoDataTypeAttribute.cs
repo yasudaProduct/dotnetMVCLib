@@ -5,14 +5,26 @@ using System.Reflection;
 
 namespace Merino.Attribute
 {
+    /// <summary>
+    /// データタイプ属性クラス
+    /// </summary>
     public class MerinoDataTypeAttribute : DataTypeAttribute
     {
         DataType _type;
 
+        /// <summary>
+        /// MerinoDataTypeAttribute クラスの新しいインスタンスを初期化します。
+        /// </summary>
+        /// <param name="type">データタイプ</param>
         public MerinoDataTypeAttribute(DataType type)
-        :base(type)
+        : base(type)
         { _type = type; }
 
+        /// <summary>
+        /// リソースメッセージを取得します。
+        /// </summary>
+        /// <param name="resouceName">リソース名</param>
+        /// <returns>リソースメッセージ</returns>
         protected string GetResouceMesseage(string resouceName)
         {
             if (resouceName == null)
@@ -22,8 +34,8 @@ namespace Merino.Attribute
                 {
                     case DataType.EmailAddress:
                         return Resource.Validator_EmailAddressAttribute;
-                    
-                    default: 
+
+                    default:
                         return null;
                 }
 
@@ -47,6 +59,12 @@ namespace Merino.Attribute
             return null;
         }
 
+        /// <summary>
+        /// メッセージを取得します。
+        /// </summary>
+        /// <param name="messeage">メッセージ</param>
+        /// <param name="validationContext">検証コンテキスト</param>
+        /// <returns>メッセージ</returns>
         protected string GetMesseage(string messeage, ValidationContext validationContext)
         {
             if (messeage.IsFormatString() && validationContext.DisplayName != null)
