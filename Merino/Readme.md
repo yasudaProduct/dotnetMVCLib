@@ -4,21 +4,159 @@
 |:-|
 
 ## 概要
-一旦ASP.NET Core MVCの利用を前提にする。(ASP.NET Coreでもできるかも)
-基本的な機能を提供し、アーキテクチャはプロジェクトごとに選定する。
-当FWの方針としては前フレームフレームからの高低差を少なくするため、
-各レイヤー、クラスの命名規則は寄せる。
-・レイヤードアーキテクチャ
-・クリーンアーキテクチャ
-を参考に（詳しくは[アーキテクチャ](#アーキテクチャ)参照）
+基底のフレームワークにはASP.NET Core MVCの利用を前提にする。
+Webアプリケーション開発における基本的な機能を提供し、アーキテクチャはプロジェクトごとに選定する。
+DB接続に関してはEntityFrameworkを採用し、
+</br></br>
 
 ## アーキテクチャ
-当フレームワークでは主にMVCモデルでのV(View)C(Controller)部分の機能を提供し、
-M(Model)以降のアーキテクチャ構成についてはプロジェクトごとに選定する必要がある。
-・トランザクションスクリプト
-・ドメイン駆動開発
-保守性、テスト容易性を高めることを目的とし、
-完璧なDDDパターンよりも簡易かつ前フレームフレームとの高低差を
+ASP.NET MVCにおいてのMVCモデルの考えかたをベースに、
+M(Model)以降のアーキテクチャ構成についてはプロジェクトの規模感、参画メンバー
+等を考慮して選定する必要がある。
+</br>
+
+#### ・3層レイヤー + トランザクションスクリプト
+```mermaid
+classDiagram
+    class Controller {
+        +Controller (Service : _Service)
+        +index(): View
+    }
+    class View {
+        +render(viewModel: ViewModel): void
+    }
+    class ViewModel {
+        // ビューモデルのプロパティ
+    }
+    class Service {
+        +execute(request: Dto): Dto
+        ・トランザクション管理
+    }
+
+    class Manager {
+        +execute(request: Dto): Dto
+        ・業務ロジック
+    }
+
+    class Dao {
+        +execute(request: Dto): Dto
+        ・DBクエリ
+    }
+
+    class External {
+        +execute(request: Dto): Dto
+        ・メール送信、ファイル保存等
+    }
+
+    class DbContext {
+        +execute(request: Entity): Entity
+    }
+
+    class Dto {
+        // プロパティ
+    }
+
+    class Entity {
+        // DB テーブル構成のクラス
+    }
+
+Controller ..> View
+View ..> ViewModel
+Controller --> Service
+Service --> Controller
+Service --> Manager
+Manager --> Service
+Manager --> Dao
+Manager --> External
+Dao --> Manager
+Dao --> DbContext
+DbContext --> データベース
+External --> 外部サービス
+```
+
+#### ・オニオンアーキテクチャ + DDD
+```mermaid
+classDiagram
+    class Controller {
+        +Controller (IApplicationService : _applicationService ,IQueryService : _queryService )
+        +index(): View
+    }
+    class View {
+        +render(viewModel: ViewModel): void
+    }
+    class ViewModel {
+        // ビューモデルのプロパティ
+    }
+    class IApplicationService {
+        <<interface>>
+        +execute(request: Request): Response
+    }
+    class ApplicationService {
+        +ApplicationService(IRepository: _repository)
+        +execute(request: Request): Response
+    }
+    class Request {
+        // リクエストのプロパティ
+    }
+    class Response {
+        // レスポンスのプロパティ
+    }
+    class IQueryService {
+        <<interface>>
+        +execute(request: QueryRequest): QueryResponse
+    }
+    class QueryService {
+        +execute(request: QueryRequest): QueryResponse
+    }
+    class QueryRequest {
+        // クエリのリクエストのプロパティ
+    }
+    class QueryResponse {
+        // クエリのレスポンスのプロパティ
+    }
+    class DomainModel {
+        -valueObject: ValueObject
+        +ValueObject: ValueObject
+        +DomainModel(valueObject: ValueObject)
+    }
+    class DomainService {
+        +processRequest(request: Request): Response
+    }
+    class ValueObject {
+        // バリューオブジェクトの定義
+    }
+    class IRepository {
+        <<interface>>
+        +find(): DomainModel
+        +findAll(): IList<DomainModel>
+        +save(): void
+    }
+    class Repository {
+        +Repository(DbContext: _dbContext)
+        +find(): DomainModel
+        +findAll(): IList<DomainModel>
+        +save(): void
+    }
+    class DbContext {
+
+    }
+
+Controller ..> View
+View ..> ViewModel
+Controller --> IApplicationService
+Controller --> IQueryService
+IQueryService <|.. QueryService
+IApplicationService <|.. ApplicationService
+ApplicationService --> DomainService
+ApplicationService --> IRepository
+IRepository <|.. Repository
+DomainModel <.. ApplicationService
+DomainModel ..> ValueObject
+Repository --> DbContext 
+QueryService --> DbContext 
+
+
+```
 
 
 ## Webアプリケーションの初期化
