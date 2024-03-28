@@ -11,11 +11,11 @@ namespace Merino.Infrastructure.Entity
 
         [Column("create_pgm_id")]
         [Required]
-        public string? CreatePgmId { get; set; } = test();
+        public string CreatePgmId { get; set; } = test();
 
         [Column("create_user_id")]
         [Required]
-        public int? CreateUserId { get; set; }
+        public int CreateUserId { get; set; }
 
         [Column("create_date")]
         [Required]
@@ -23,11 +23,11 @@ namespace Merino.Infrastructure.Entity
 
         [Column("update_pgm_id")]
         [Required]
-        public string? UpdatePgmId { get; set; } = test();
+        public string UpdatePgmId { get; set; } = test();
 
         [Column("update_user_id")]
         [Required]
-        public int? UpdateUserId { get; set; }
+        public int UpdateUserId { get; set; }
 
         [Column("update_date")]
         [Required]
